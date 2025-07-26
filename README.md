@@ -172,11 +172,11 @@ aws rds create-db-instance \
   --storage-type gp2 \
   --region us-east-1
 ```
+
 <img width="1908" height="721" alt="Screenshot 2025-07-26 104723" src="https://github.com/user-attachments/assets/5d003bce-1b15-4305-a916-53e3afeb0f9c" />
 
 <img width="795" height="730" alt="image" src="https://github.com/user-attachments/assets/8b1a9d85-5462-4691-8e04-b6bdc56494f9" />
 
-<img width="1908" height="721" alt="image" src="https://github.com/user-attachments/assets/3e781ea3-62e4-41f2-b5f7-683ad125e35a" />
 
 **Clone the repo**
 git clone https://github.com/kubernetes-zero-to-hero.git
@@ -286,11 +286,15 @@ Apply the `migration-job.yaml`:
 kubectl apply -f migration-job.yaml
 ```
 
+<img width="1503" height="69" alt="image" src="https://github.com/user-attachments/assets/6c8cea03-fb3d-4d38-83f0-10c7ea8920af" />
+
 Verify completion:
 
 ```bash
-kubectl get job -n 3-tier-app-eks
-```
+kubectl get job -A
+``
+<img width="1343" height="80" alt="image" src="https://github.com/user-attachments/assets/d3dd22d2-4860-48de-871d-b1f8897078ad" />
+`
 
 Troubleshoot (if necessary):
 
@@ -311,6 +315,9 @@ kubectl logs job/database-migration -n 3-tier-app-eks
 eksctl utils associate-iam-oidc-provider --cluster Fortis-v2 --approve
 ```
 
+<img width="1761" height="98" alt="image" src="https://github.com/user-attachments/assets/87a3c0b3-1e30-4c37-86ad-02b736f39647" />
+
+
 ### b. Create IAM Policy and Service Account
 
 ```bash
@@ -319,7 +326,12 @@ curl -o iam-policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-lo
 aws iam create-policy \
 --policy-name AWSLoadBalancerControllerIAMPolicy \
 --policy-document file://iam-policy.json
+```
 
+<img width="1754" height="306" alt="image" src="https://github.com/user-attachments/assets/96c07bae-14dc-4971-b447-258e7a89fdde" />
+
+
+```bash
 eksctl create iamserviceaccount \
 --cluster=Fortis-v2 \
 --namespace=kube-system \
@@ -328,7 +340,8 @@ eksctl create iamserviceaccount \
 --approve
 ```
 
-📸 **\[Screenshot Placeholder: IAM policy and role created]**
+<img width="1654" height="340" alt="image" src="https://github.com/user-attachments/assets/09e697e2-aca8-45a2-821f-1358ab9a821d" />
+
 
 ### c. Install Using Helm
 
@@ -345,22 +358,20 @@ helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
 --set vpcId=<your-vpc-id>
 ```
 
-📸 **\[Screenshot Placeholder: Helm installation output]**
+<img width="1703" height="260" alt="image" src="https://github.com/user-attachments/assets/b4b59eb5-d165-4bb6-a210-be39d672c538" />
 
----
-
-## 7️⃣ Tag Public Subnets for ALB
+##  7️⃣ Tag Public Subnets for ALB
 
 ```bash
 aws ec2 create-tags --resources subnet-02e3680c7a052c52f subnet-0ea63a3626c8544ce \
 --tags Key=kubernetes.io/role/elb,Value=1
 ```
 
-📸 **\[Screenshot Placeholder: Subnet tags in AWS Console]**
+<img width="1754" height="647" alt="image" src="https://github.com/user-attachments/assets/dc04cff0-4ed4-4e3d-93df-4a3bcaff5550" />
 
----
 
-## 8️⃣ Deploy Ingress Resource
+
+## 8️⃣Deploy Ingress Resource
 
 Create `ingress.yaml`:
 
@@ -395,53 +406,45 @@ kubectl apply -f ingress.yaml
 kubectl get ingress -n 3-tier-app-eks
 ```
 
-📸 **\[Screenshot Placeholder: Ingress status with ALB DNS]**
+<img width="1736" height="663" alt="image" src="https://github.com/user-attachments/assets/26e9fa06-3487-4a88-966c-f1202eb09ff8" />
 
----
+Ingress status shows reconciled, which means it has created the load balancer. 
+
+You can go to your AWS console where you will see an ALB there. Copy the DNS name for it and paste it into the browser, and you should be able to see your app there.
+
+<img width="1881" height="836" alt="Screenshot 2025-07-24 220301" src="https://github.com/user-attachments/assets/db88db2a-adf7-41f5-afde-06f00ceb62b5" />
+
 
 ## 9️⃣ Point Domain to ALB via Cloudflare
 
-* Log in to Cloudflare dashboard
-* Navigate to **DNS > Records**
-* Add a new record:
+**Add Your Domain to Cloudflare**
+
+- Go to your Cloudflare dashboard.
+- Click "Add a Site" → enter ponmile.com.ng.
+- Cloudflare will scan your current DNS records.
+- Update nameservers at your domain registrar (e.g., Qservers, GoDaddy, Namecheap) to point to the ones Cloudflare gives you.
+
+**Create a DNS Record in Cloudflare**
+
+ Log in to Cloudflare dashboard
+- Navigate to **DNS > Records**
+- Add a new record:
 
   * **Type:** CNAME
   * **Name:** `ponmile.com.ng`
   * **Target:** ALB DNS name from Ingress
 
-📸 **\[Screenshot Placeholder: Cloudflare DNS config for domain]**
-
----
-
-## 🔐 🔒 10️⃣ Enable SSL on Cloudflare
-
-* Go to **SSL/TLS** tab
-* Set **SSL Mode** to **Full (Strict)**
-* Enable:
-
-  * Always Use HTTPS
-  * Automatic HTTPS Rewrites
-
-📸 **\[Screenshot Placeholder: SSL settings in Cloudflare]**
-
----
+<img width="1398" height="561" alt="Screenshot 2025-07-25 140941" src="https://github.com/user-attachments/assets/9bfbe185-01c9-468e-9d53-d7697bf71318" />
 
 ## ✅ 11️⃣ Verify Access
 
-### a. Curl Request:
-
-```bash
-curl -I https://ponmile.com.ng
-```
-
-### b. Browser Access:
+### a. Browser Access:
 
 * Open [https://ponmile.com.ng](https://ponmile.com.ng)
-* Confirm secure lock icon and content loads
 
-📸 **\[Screenshot Placeholder: Browser with SSL and app loaded]**
 
----
+<img width="1907" height="900" alt="Screenshot 2025-07-25 141441" src="https://github.com/user-attachments/assets/03600d11-3484-4c3a-b786-85a5c00140da" />
+
 
 ## 🎉 Final Notes
 
