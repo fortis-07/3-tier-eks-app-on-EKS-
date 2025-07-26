@@ -455,14 +455,7 @@ Congratulations! You have successfully:
 * Deployed a backend and frontend
 * Configured a migration job
 * Set up Ingress with AWS ALB
-* Mapped a domain name to your app
-* Enabled SSL using Cloudflare
+* Mapped a domain name to your app using Clouflare
+
 
 Your 3-tier app is now live and secure using modern cloud-native architecture.
-
----
-
-## 📦 Export Option
-
-This document is Markdown-ready for GitHub README use.
-Let me know if you also want it in PDF or DOCX format.
