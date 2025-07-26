@@ -119,9 +119,82 @@ aws rds create-db-subnet-group \
   --region eu-west-1
 ```
 
+<img width="813" height="770" alt="image" src="https://github.com/user-attachments/assets/7119f52a-327a-432f-935d-b19762f7b6bd" />
+
+**Create security group for RDS**
+
+Create a security group that allows the cluster nodes to reach RDS on the port 5432. For security reasons, we should only open the ports from a particular security group instead of all (0.0.0.0/0)
+```bash
+aws ec2 create-security-group \
+--group-name postgressg \
+--description "SG for RDS" \
+--vpc-id $VPC_ID \
+--region us-east-1
+```
+## Creating the security group ingress rule to allow inbound on port 5432 from Cluster SG
+
+**Store the security group ID**
+SG_ID=$(aws ec2 describe-security-groups \
+--filters "Name=group-name,Values=postgressg" "Name=vpc-id,Values=$VPC_ID" \
+--query "SecurityGroups[0].GroupId" \
+--output text \
+--region us-east-1))
+
+**The SG attached with cluster nodes**
+NODE_SG=$(aws eks describe-cluster --name Akhilesh-cluster --region eu-west-1 \
+--query "cluster.resourcesVpcConfig.securityGroupIds[0]" --output text)
+
+**Allow cluster to reach rds on port 5432**
+aws ec2 authorize-security-group-ingress \
+--group-id sg-02b8f5325b7833969 \
+--protocol tcp \
+--port 5432 \
+--source-group $NODE_SG \
+--region us-east-1
+
+<img width="799" height="761" alt="image" src="https://github.com/user-attachments/assets/28b2815c-72ac-4bb3-8f14-209275425092" />
+
+**Creating an RDS instance that can only be privately accessed.**
+
+```bash
+aws rds create-db-instance \
+  --db-instance-identifier fortis-postgres \
+  --db-instance-class db.t4g.small \
+  --engine postgres \
+  --engine-version 15 \
+  --allocated-storage 20 \
+  --master-username postgresadmin \
+  --master-user-password YourStrongPassword123! \
+  --db-subnet-group-name v2-postgres-private-subnet-group \
+  --vpc-security-group-ids $SG_ID \
+  --no-publicly-accessible \
+  --backup-retention-period 7 \
+  --storage-type gp2 \
+  --region us-east-1
+```
+<img width="1908" height="721" alt="Screenshot 2025-07-26 104723" src="https://github.com/user-attachments/assets/5d003bce-1b15-4305-a916-53e3afeb0f9c" />
+
+<img width="795" height="730" alt="image" src="https://github.com/user-attachments/assets/8b1a9d85-5462-4691-8e04-b6bdc56494f9" />
+
+<img width="1908" height="721" alt="image" src="https://github.com/user-attachments/assets/3e781ea3-62e4-41f2-b5f7-683ad125e35a" />
+
+**Clone the repo**
+git clone https://github.com/kubernetes-zero-to-hero.git
+cd 3-tier-app-eks/k8s
+- Create a namespace with the name 3-tier-app-eks
+
+```bash
+kubectl apply -f namespace.yaml
+```
+<img width="794" height="83" alt="image" src="https://github.com/user-attachments/assets/a0e3104a-84c7-486a-bd2a-1411bff932bd" />
+
+**Connect to External PostgreSQL Using ExternalName**
+
+Now we can use this service to point to RDS, if we need to update the cluster, we can update this service and everything will stay the same.
+
+Now we can use the DNS name for RDS using service discovery. it follows the format service_name.namespace.svc.cluster.localWe should be able to use postgres-db.3-tier-app-eks.svc.cluster.local to connect to the database
 
 
-## 2️⃣ Connect to External PostgreSQL Using ExternalName
 
 Create `postgres-service.yaml`:
 
@@ -151,17 +224,20 @@ Confirm DNS resolution:
 kubectl run -it --rm --restart=Never dns-test --image=tutum/dnsutils -- dig postgres-db.3-tier-app-eks.svc.cluster.local
 ```
 
-📸 **\[Screenshot Placeholder: dig command showing RDS IP resolution]**
+<img width="792" height="643" alt="image" src="https://github.com/user-attachments/assets/6aaf0f3a-9b3d-49de-be39-7ed1390a12ef" />
 
----
+(PS: Keep the Postrgress security group opened if you experienced issues connecting to the postgres server.)
+
+
 
 ## 3️⃣ Configure Secrets and ConfigMap
 
 Base64 encode credentials:
 
 ```bash
-echo -n 'postgresadmin' | base64
-echo -n 'YourStrongPassword123!' | base64
+echo 'postgresadmin' | base64
+echo 'YourStrongPassword123!' | base64
+echo 'postgresql://postgresadmin:YourStrongPassword123!@postgres-db.3-tier-app-eks.svc.cluster.local:5432/postgres' | base64
 ```
 
 Use them in `secrets.yaml` and `configmap.yaml` and apply:
@@ -171,22 +247,36 @@ kubectl apply -f secrets.yaml
 kubectl apply -f configmap.yaml
 ```
 
-📸 **\[Screenshot Placeholder: kubectl get secrets output]**
-
----
-
 ## 4️⃣ Deploy Backend and Frontend
 
-Apply workloads:
+**Apply workloads:**
 
 ```bash
 kubectl apply -f backend-deployment.yaml
 kubectl apply -f frontend-deployment.yaml
 ```
 
-📸 **\[Screenshot Placeholder: kubectl get pods -n 3-tier-app-eks output]**
+<img width="1468" height="158" alt="image" src="https://github.com/user-attachments/assets/72dbfa5e-b1b9-460f-8848-0d973e80b741" />
 
----
+**Checking the deployments and services**
+
+```bash
+kubectl get deployment -n 3-tier-app-eks
+```
+<img width="786" height="169" alt="image" src="https://github.com/user-attachments/assets/a0330eeb-2fd4-4b68-bc6c-deb55d3d57b5" />
+
+
+```bash
+kubectl get svc -n 3-tier-app-eks
+```
+
+<img width="1503" height="38" alt="image" src="https://github.com/user-attachments/assets/1ea0a8c7-3e1a-4ec7-a061-9dce2511a632" />
+
+```bash
+kubectl get po -n 3-tier-app-eks
+```
+<img width="1606" height="333" alt="image" src="https://github.com/user-attachments/assets/43eec834-da77-4fc3-b915-64dd47eb0d9f" />
+
 
 ## 5️⃣ Run Database Migration Job
 
@@ -208,7 +298,8 @@ Troubleshoot (if necessary):
 kubectl logs job/database-migration -n 3-tier-app-eks
 ```
 
-📸 **\[Screenshot Placeholder: Successful job completion status]**
+<img width="1721" height="720" alt="image" src="https://github.com/user-attachments/assets/afd050f5-0461-448b-b42e-cb06f56564fb" />
+
 
 ---
 
