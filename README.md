@@ -134,23 +134,31 @@ aws ec2 create-security-group \
 ## Creating the security group ingress rule to allow inbound on port 5432 from Cluster SG
 
 **Store the security group ID**
+
+```bash
 SG_ID=$(aws ec2 describe-security-groups \
 --filters "Name=group-name,Values=postgressg" "Name=vpc-id,Values=$VPC_ID" \
 --query "SecurityGroups[0].GroupId" \
 --output text \
 --region us-east-1))
+```
 
 **The SG attached with cluster nodes**
+
+```bash
 NODE_SG=$(aws eks describe-cluster --name Akhilesh-cluster --region eu-west-1 \
 --query "cluster.resourcesVpcConfig.securityGroupIds[0]" --output text)
+```
 
 **Allow cluster to reach rds on port 5432**
+```bash
 aws ec2 authorize-security-group-ingress \
 --group-id sg-02b8f5325b7833969 \
 --protocol tcp \
 --port 5432 \
 --source-group $NODE_SG \
 --region us-east-1
+```
 
 <img width="799" height="761" alt="image" src="https://github.com/user-attachments/assets/28b2815c-72ac-4bb3-8f14-209275425092" />
 
