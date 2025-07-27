@@ -330,6 +330,9 @@ aws iam create-policy \
 
 <img width="1754" height="306" alt="image" src="https://github.com/user-attachments/assets/96c07bae-14dc-4971-b447-258e7a89fdde" />
 
+<img width="1615" height="440" alt="image" src="https://github.com/user-attachments/assets/35f9eeb3-cbc6-4374-a24a-fb6b8a8c8f97" />
+
+
 
 ```bash
 eksctl create iamserviceaccount \
