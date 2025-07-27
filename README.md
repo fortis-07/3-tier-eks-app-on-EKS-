@@ -1,4 +1,5 @@
-# 📘 Comprehensive Guide: Deploying a 3-Tier Application on Amazon EKS with Ingress, Custom Domain (ponmile.com.ng), and Cloudflare SSL
+# 📘 Comprehensive Guide: Deploying a 3-Tier Application on Amazon EKS with Ingress and Cloudflare 
+
 
 ---
 
