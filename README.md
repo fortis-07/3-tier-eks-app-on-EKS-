@@ -5,7 +5,7 @@
 
 ## 📋 Overview
 
-This tutorial provides a complete walkthrough for deploying a production-ready 3-tier application on Amazon Elastic Kubernetes Service (EKS). The deployment includes PostgreSQL database connectivity, backend and frontend apps, Ingress setup via AWS Load Balancer Controller, DNS mapping using Cloudflare, and SSL termination.
+This guide provides a complete walkthrough for deploying a production-ready 3-tier application on Amazon Elastic Kubernetes Service (EKS). The deployment includes PostgreSQL database connectivity, backend and frontend apps, Ingress setup via AWS Load Balancer Controller, DNS mapping using Cloudflare, and SSL termination.
 
 ### 🧠 You Will Learn To:
 
