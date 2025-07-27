@@ -283,9 +283,9 @@ Verify completion:
 
 ```bash
 kubectl get job -A
-``
+```
+
 <img width="1343" height="80" alt="image" src="https://github.com/user-attachments/assets/d3dd22d2-4860-48de-871d-b1f8897078ad" />
-`
 
 Troubleshoot (if necessary):
 
@@ -296,7 +296,6 @@ kubectl logs job/database-migration -n 3-tier-app-eks
 <img width="1721" height="720" alt="image" src="https://github.com/user-attachments/assets/afd050f5-0461-448b-b42e-cb06f56564fb" />
 
 
----
 
 ## 6️⃣ Install AWS Load Balancer Controller
 
