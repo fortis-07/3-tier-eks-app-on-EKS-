@@ -195,23 +195,6 @@ Now we can use this service to point to RDS, if we need to update the cluster, w
 Now we can use the DNS name for RDS using service discovery. it follows the format service_name.namespace.svc.cluster.localWe should be able to use postgres-db.3-tier-app-eks.svc.cluster.local to connect to the database
 
 
-
-Create `postgres-service.yaml`:
-
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: postgres-db
-  namespace: 3-tier-app-eks
-spec:
-  type: ExternalName
-  externalName: fortis-postgres.cu168y0okdse.us-east-1.rds.amazonaws.com
-  ports:
-  - port: 5432
-    targetPort: 5432
-```
-
 Apply the manifest:
 
 ```bash
@@ -330,6 +313,7 @@ aws iam create-policy \
 
 <img width="1754" height="306" alt="image" src="https://github.com/user-attachments/assets/96c07bae-14dc-4971-b447-258e7a89fdde" />
 
+
 <img width="1615" height="440" alt="image" src="https://github.com/user-attachments/assets/35f9eeb3-cbc6-4374-a24a-fb6b8a8c8f97" />
 
 
@@ -376,36 +360,17 @@ aws ec2 create-tags --resources subnet-02e3680c7a052c52f subnet-0ea63a3626c8544c
 
 ## 8️⃣Deploy Ingress Resource
 
-Create `ingress.yaml`:
-
-```yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: app-ingress
-  namespace: 3-tier-app-eks
-  annotations:
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    alb.ingress.kubernetes.io/target-type: ip
-spec:
-  ingressClassName: alb
-  rules:
-    - host: ponmile.com.ng
-      http:
-        paths:
-        - path: /
-          pathType: Prefix
-          backend:
-            service:
-              name: frontend-service
-              port:
-                number: 80
-```
+Create `ingress.yaml`
 
 Apply the manifest:
 
 ```bash
 kubectl apply -f ingress.yaml
+```
+
+Verify the resource creation:
+
+```bash
 kubectl get ingress -n 3-tier-app-eks
 ```
 
@@ -414,6 +379,7 @@ kubectl get ingress -n 3-tier-app-eks
 Ingress status shows reconciled, which means it has created the load balancer. 
 
 You can go to your AWS console where you will see an ALB there. Copy the DNS name for it and paste it into the browser, and you should be able to see your app there.
+
 
 <img width="1881" height="836" alt="Screenshot 2025-07-24 220301" src="https://github.com/user-attachments/assets/db88db2a-adf7-41f5-afde-06f00ceb62b5" />
 
