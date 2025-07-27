@@ -1,4 +1,4 @@
-# 📘 Comprehensive Guide: Deploying a 3-Tier Application on Amazon EKS with Ingress and Cloudflare 
+# 📘  3-Tier Application Deployment on Amazon EKS with Ingress and Cloudflare 
 
 
 ---
